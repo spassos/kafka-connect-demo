@@ -120,10 +120,12 @@ curl --location --request GET 'http://localhost:9200/paciente/_search?pretty&q=n
 ```sh
 docker-compose down
 ```
+
 ### Materiais de apoio
 
-[Kafka Connect 101](https://developer.confluent.io/learn-kafka/kafka-connect/intro/)
-[Confluent Hub](https://www.confluent.io/hub/)
-[Fake Generator](https://www.fakenamegenerator.com/gen-random-br-br.php)
-[KAFKA e Minio](https://blog.min.io/kafka_and_minio/)
-[Elastic queries](https://logz.io/blog/elasticsearch-queries/)
+
+- [Kafka Connect 101](https://developer.confluent.io/learn-kafka/kafka-connect/intro/)
+- [Confluent Hub](https://www.confluent.io/hub/)
+- [Fake Generator](https://www.fakenamegenerator.com/gen-random-br-br.php)
+- [KAFKA e Minio](https://blog.min.io/kafka_and_minio/)
+- [Elastic queries](https://logz.io/blog/elasticsearch-queries/)
