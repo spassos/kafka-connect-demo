@@ -1,0 +1,116 @@
+version: '3'
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver
+    ports:
+      - 1433:1433
+    environment: 
+      MSSQL_AGENT_ENABLED: "true"
+      MSSQL_PID: Standard
+      SA_PASSWORD: P@ssw0rd
+      ACCEPT_EULA: "Y"
+    volumes:
+      - ./setup:/opt/mssql/setup/
+  minio:
+    image: minio/minio:latest
+    command: minio server /var/lib/minio/data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=@Password123!
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - /storage:/var/lib/minio/data
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    depends_on:
+      - sqlserver
+    ports:
+      - 2181:2181
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    depends_on:
+      - sqlserver
+      - zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    
+  connect:
+    container_name: connect
+    build:
+      context: .
+    depends_on:
+      - sqlserver
+      - zookeeper
+      - kafka
+    ports:
+      - 8083:8083
+    volumes:
+      - ./.aws:/home/appuser/.aws/
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: connect-1
+      CONNECT_CONFIG_STORAGE_TOPIC: connect-1-config
+      CONNECT_OFFSET_STORAGE_TOPIC: connect-1-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: connect-1-status
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_OFFSET.STORAGE.REPLICATION.FACTOR: 1
+      CONNECT_CONFIG.STORAGE.REPLICATION.FACTOR: 1
+      CONNECT_OFFSET.STORAGE.PARTITIONS: 1
+      CONNECT_STATUS.STORAGE.REPLICATION.FACTOR: 1
+      CONNECT_STATUS.STORAGE.PARTITIONS: 1
+      CONNECT_REST_ADVERTISED_HOST_NAME: localhost
+  mysql:
+    container_name: mysql
+    image: quay.io/debezium/example-mysql:latest
+    ports:
+     - 3306:3306
+    environment:
+     - MYSQL_ROOT_PASSWORD=debezium
+     - MYSQL_USER=mysqluser
+     - MYSQL_PASSWORD=mysqlpw 
+  postgres:
+    container_name: postgres
+    image: quay.io/debezium/postgres:9.6
+    ports:
+     - "5432:5432"
+    environment:
+     - POSTGRES_USER=postgresuser
+     - POSTGRES_PASSWORD=postgrespw
+     - POSTGRES_DB=inventory
+  elastic:
+    container_name: elastic
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0
+    ports:
+     - "9200:9200"
+    environment:
+     - http.host=0.0.0.0
+     - transport.host=127.0.0.1
+     - xpack.security.enabled=false
+     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+     - 8080:8080
+    links:
+     - kafka
+    environment:
+     - KAFKA_CLUSTERS_0_NAME=kafka
+     - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092

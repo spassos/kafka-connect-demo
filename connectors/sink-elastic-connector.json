@@ -1,0 +1,17 @@
+{
+    "name": "sink-elastic-connector",
+    "config": {
+        "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+        "tasks.max": "1",
+        "topics": "paciente,paciente_contato,paciente_endereco",
+        "connection.url": "http://elastic:9200",
+        "transforms": "unwrap,key",
+        "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+        "transforms.unwrap.drop.tombstones": "false",
+        "transforms.key.type": "org.apache.kafka.connect.transforms.ExtractField$Key",
+        "transforms.key.field": "id_paciente",
+        "key.ignore": "false",
+        "type.name": "patients",
+        "behavior.on.null.values": "delete"
+    }
+}
