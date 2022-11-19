@@ -26,6 +26,10 @@ curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json"
 # Start Elastic Sink connector
 curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @connectors/sink-elastic-connector.json
 
+# Start S3 Sink connector
+curl -i -X POST -H "Accept:application/json" -H  "Content-Type:application/json" http://localhost:8083/connectors/ -d @connectors/sink-s3-minio-connector.json
+
+
 ```
 
 Verificar os dados do banco SQL Server
@@ -37,7 +41,7 @@ docker compose -f docker-compose.yaml exec sqlserver bash -c '\/opt/mssql-tools/
 Verificar se o banco Postgres tem o mesmo conteúdo
 
 ```sh
-docker compose -f docker-compose.yaml exec postgres bash -c 'psql -U $POSTGRES_USER $POSTGRES_DB -c "select top 10 id_paciente, nome, cpf, data_nascimento from paciente"'
+docker compose -f docker-compose.yaml exec postgres bash -c 'psql -U $POSTGRES_USER $POSTGRES_DB -c "select id_paciente, nome, cpf, data_nascimento from paciente"'
 ```
 
 ### Inclusão de Dados 
